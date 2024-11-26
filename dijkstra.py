@@ -4,78 +4,140 @@ from manim import *
 class Dijkstra(Scene):
     def construct(self):
         # Crear los nodos
-        A = Dot(point=LEFT * 3, color=BLUE)
-        B = Dot(point=RIGHT * 3, color=BLUE)
-        C = Dot(point=DOWN * 2 + LEFT * 2, color=BLUE)
-        D = Dot(point=DOWN * 2 + RIGHT * 2, color=BLUE)
+        nodes = {
+            "A": Dot(point=LEFT * 5 + UP * 3, color=BLUE),
+            "B": Dot(point=LEFT * 2 + UP * 3, color=BLUE),
+            "C": Dot(point=LEFT * 4, color=BLUE),
+            "D": Dot(point=ORIGIN, color=BLUE),
+            "E": Dot(point=RIGHT * 4, color=BLUE),
+            "F": Dot(point=LEFT * 3 + DOWN * 3, color=BLUE),
+            "G": Dot(point=RIGHT * 3 + DOWN * 3, color=BLUE),
+            "H": Dot(point=RIGHT * 5 + UP * 3, color=BLUE),
+        }
 
-        # Crear las etiquetas para los nodos
-        label_A = Tex("A").next_to(A, LEFT)
-        label_B = Tex("B").next_to(B, RIGHT)
-        label_C = Tex("C").next_to(C, DOWN * 2 + LEFT * 2)
-        label_D = Tex("D").next_to(D, DOWN * 2 + RIGHT * 2)
+        # Crear etiquetas para los nodos
+        labels = {name: Tex(name).next_to(dot, UP) for name, dot in nodes.items()}
 
-        # Crear las aristas con pesos
-        edge_AB = Line(A.get_center(), B.get_center(), color=WHITE)
-        edge_BC = Line(B.get_center(), C.get_center(), color=WHITE)
-        edge_CD = Line(C.get_center(), D.get_center(), color=WHITE)
-        edge_AD = Line(A.get_center(), D.get_center(), color=WHITE)
+        # Crear las aristas con pesos (grafo dirigido con pesos)
+        edges = [
+            ("A", "B", 1),
+            ("A", "C", 4),
+            ("B", "D", 2),
+            ("B", "E", 7),
+            ("C", "F", 3),
+            ("D", "E", 2),
+            ("D", "F", 1),
+            ("E", "G", 1),
+            ("F", "G", 5),
+            ("E", "H", 3),
+        ]
 
-        # Crear los pesos de las aristas
-        weight_AB = Tex("4").move_to(edge_AB.get_center() + UP * 0.5)
-        weight_BC = Tex("2").move_to(edge_BC.get_center() + RIGHT * 0.5)
-        weight_CD = Tex("3").move_to(edge_CD.get_center() + DOWN * 0.5)
-        weight_AD = Tex("1").move_to(edge_AD.get_center() + LEFT * 0.5)
+        lines = []
+        weights = []
+        for start, end, weight in edges:
+            line = Line(nodes[start].get_center(), nodes[end].get_center(), color=WHITE)
+            lines.append(line)
+            weight_text = Tex(str(weight)).move_to(
+                line.get_center() + 0.3 * (UP + RIGHT)
+            )
+            weights.append(weight_text)
 
-        # Mostrar los nodos y las aristas
-        self.play(Create(A), Create(B), Create(C), Create(D))
-        self.play(Write(label_A), Write(label_B), Write(label_C), Write(label_D))
-        self.play(Create(edge_AB), Create(edge_BC), Create(edge_CD), Create(edge_AD))
-        self.play(
-            Write(weight_AB), Write(weight_BC), Write(weight_CD), Write(weight_AD)
-        )
+        title = Text("Algoritmo de Dijkstra", font_size=48)
+        self.play(FadeIn(title), run_time=4)
+        self.wait(0.5)
 
-        # Realizar la animación del algoritmo Dijkstra
-        # Explicar el algoritmo de Kruskal
-        # self.wait(1)
-        self.play(FadeIn(Text("Algoritmo de Dijkstra", font_size=48).shift(UP * 3)))
+        self.play(FadeOut(title))
+
+        # Mostrar los nodos y etiquetas
+        self.play(*[Create(dot) for dot in nodes.values()])
+        self.play(*[Write(label) for label in labels.values()])
+
+        # Mostrar las aristas y pesos
+        self.play(*[Create(line) for line in lines])
+        self.play(*[Write(weight) for weight in weights])
+
+      
+
+        self.play(nodes["A"].animate.set_color(RED))
         self.wait(1)
 
-        # Iniciar en el nodo A
-        self.play(A.animate.scale(1.5), run_time=0.5)
+        #  nodo inicial (A)
+        distance_label_A = Tex("[-, 0]").next_to(nodes["A"], DOWN).scale(0.7)
+        self.play(nodes["A"].animate.scale(1.5), Write(distance_label_A), run_time=0.5)
         self.wait(0.5)
 
-        # Resaltar la arista A -> B
+        # Paso 2: Resaltar A -> B (distancia más corta)
+        distance_label_B = Tex("[A, 1]").next_to(nodes["B"], DOWN).scale(0.7)
         self.play(
-            edge_AB.animate.set_color(RED),
-            weight_AB.animate.set_color(RED),
+            lines[0].animate.set_color(RED),  # A -> B
+            weights[0].animate.set_color(RED),
+            Write(distance_label_B),
             run_time=0.5,
         )
         self.wait(0.5)
 
-        # Resaltar la arista A -> D
+        # Paso 3: Resaltar A -> C
+        distance_label_C = Tex("[A, 4]").next_to(nodes["C"], DOWN).scale(0.7)
+
         self.play(
-            edge_AD.animate.set_color(RED),
-            weight_AD.animate.set_color(RED),
+            lines[1].animate.set_color(RED),  # A -> C
+            weights[1].animate.set_color(RED),
+            Write(distance_label_C),
             run_time=0.5,
         )
         self.wait(0.5)
 
-        # Resaltar la arista B -> C
+        # Paso 4: Resaltar B -> D
+        distance_label_D = Tex("[B, 3]").next_to(nodes["D"], DOWN).scale(0.7)
         self.play(
-            edge_BC.animate.set_color(RED),
-            weight_BC.animate.set_color(RED),
+            lines[2].animate.set_color(RED),  # B -> D
+            weights[2].animate.set_color(RED),
+            Write(distance_label_D),
             run_time=0.5,
         )
         self.wait(0.5)
 
-        # Resaltar la arista C -> D
+        # Paso 5: Resaltar D -> E
+        distance_label_E = Tex("[D, 5]").next_to(nodes["E"], DOWN).scale(0.7)
         self.play(
-            edge_CD.animate.set_color(RED),
-            weight_CD.animate.set_color(RED),
+            lines[5].animate.set_color(RED),  # D -> E
+            weights[5].animate.set_color(RED),
+            Write(distance_label_E),
             run_time=0.5,
         )
         self.wait(0.5)
 
-        # Finalizar
+        # D -> F
+        distance_label_f = Tex("[D, 4]").next_to(nodes["F"], DOWN).scale(0.7)
+        self.play(
+            lines[6].animate.set_color(RED),  # D -> F
+            weights[6].animate.set_color(RED),
+            Write(distance_label_f),
+            run_time=0.5,
+        )
+
+        self.wait(0.5)
+        #  E -> G
+        distance_label_G = Tex("[E, 6]").next_to(nodes["G"], DOWN).scale(0.7)
+        self.play(
+            lines[7].animate.set_color(RED),
+            weights[7].animate.set_color(RED),
+            Write(distance_label_G),
+            run_time=0.5,
+        )
+        self.wait(0.5)
+
+        # E -> H
+        distance_label_H = Tex("[E, 8]").next_to(nodes["H"], DOWN).scale(0.7)
+        self.play(
+            lines[9].animate.set_color(RED),
+            weights[9].animate.set_color(RED),
+            Write(distance_label_H),
+            run_time=0.5,
+        )
+        self.wait(0.5)
+        # Finalización
+
+        final_message = Text("Camino más corto calculado.", font_size=36).to_edge(DOWN)
+        self.play(Write(final_message))
         self.wait(1)
